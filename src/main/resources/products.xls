@@ -1,0 +1,11 @@
+idProduct	description	nom	image	prix
+1	Apple iPhone 11	iPhone 11	https://example.com/iphone11.jpg	799.0
+2	Samsung Galaxy S10	Galaxy S10	https://example.com/s10.jpg	899.0
+3	Google Pixel 4	Pixel 4	https://example.com/pixel4.jpg	699.0
+4	Huawei P30 Pro	P30 Pro	https://example.com/p30pro.jpg	799.0
+5	OnePlus 7 Pro	OnePlus 7 Pro	https://example.com/oneplus7.jpg	699.0
+6	Xiaomi Mi 9	Mi 9	https://example.com/mi9.jpg	449.0
+7	Sony Xperia XZ3	Xperia XZ3	https://example.com/xz3.jpg	799.0
+8	LG G8 ThinQ	G8 ThinQ	https://example.com/g8.jpg	699.0
+9	Motorola Moto G7	Moto G7	https://example.com/motog7.jpg	299.0
+10	Nokia 7.2	Nokia 7.2	https://example.com/nokia72.jpg	349.0
