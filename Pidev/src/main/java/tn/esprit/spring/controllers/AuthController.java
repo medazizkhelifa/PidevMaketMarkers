@@ -2,6 +2,7 @@ package tn.esprit.spring.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -67,6 +68,7 @@ public class AuthController {
         User user = new User();
         user.setUserName(registerDto.getUserName());
         user.setPassword(passwordEncoder.encode((registerDto.getPassword())));
+        user.setEmail(registerDto.getEmail());
 
         Role roles = roleRepository.findByName("USER").get();
         user.setRoles(Collections.singletonList(roles));
@@ -74,4 +76,7 @@ public class AuthController {
 
         return new ResponseEntity<>("User Registered Successfully !", HttpStatus.OK);
     }
+    //@PostMapping(value = "password-reset-request", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE,MediaType.APPLICATION_XML_VALUE})
+    //public OperationStatusModel requestReset
+
 }

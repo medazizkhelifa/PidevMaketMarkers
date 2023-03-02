@@ -31,6 +31,9 @@ public class User implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
 
     private List<Role> roles = new ArrayList<>();
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+    private String email;
 
 
 }
