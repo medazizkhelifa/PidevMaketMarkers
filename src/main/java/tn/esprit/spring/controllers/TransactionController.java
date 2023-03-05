@@ -3,12 +3,10 @@ package tn.esprit.spring.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
+import tn.esprit.spring.config.InvalidInputException;
+import tn.esprit.spring.dto.ApiResponse;
 import tn.esprit.spring.dto.GiftPointDto;
 import tn.esprit.spring.dto.TransactionDTO;
 import tn.esprit.spring.entities.Transaction;
@@ -22,23 +20,38 @@ public class TransactionController {
     private ITransactionService transactionService;
 
     @PostMapping("/pay-invoice")
-    public ResponseEntity<Object> createTransaction(@RequestBody TransactionDTO transactionInput) {
-        try{
+    @ResponseBody
+    public ApiResponse createTransaction(@RequestBody TransactionDTO transactionInput) {
+        ApiResponse apiResponse = new ApiResponse();
+        try
+        {
             transactionService.AddTransaction(transactionInput);
-            return ResponseEntity.ok().body("Transaction created successfully");
-        }catch(Exception ex){
-            System.out.println(ex.getMessage());
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            apiResponse.setStatus("SUCCESS");
+            apiResponse.setMessage("Transaction created successfully");
         }
+        catch(InvalidInputException ex)
+        {
+            apiResponse.setStatus("ERROR");
+            apiResponse.setMessage("Error while creating transaction");
+            apiResponse.setError(ex.getMessage());
+        }
+        return apiResponse;
     }
 
     @GetMapping("/discount-balance/{id}")
-    public ResponseEntity<Object> getAvailableBalance(@PathVariable("id") int id) {
+    @ResponseBody
+    public ApiResponse getAvailableBalance(@PathVariable("id") int id) {
+        ApiResponse apiResponse = new ApiResponse();
         try{
+            apiResponse.setStatus("SUCCESS");
+            apiResponse.setMessage("Balance found");
             GiftPointDto giftPointDto = transactionService.getAvailableBalance(id);
-            return  ResponseEntity.ok().body(giftPointDto);
-        }catch(Exception ex){
-            return ResponseEntity.badRequest().body("Error while getting available balance: Client not found");
+            apiResponse.setData(giftPointDto);
+        }catch(InvalidInputException ex){
+            apiResponse.setStatus("ERROR");
+            apiResponse.setMessage("Error while getting balance");
+            apiResponse.setError(ex.getMessage());
         }
+        return apiResponse;
     }
 }

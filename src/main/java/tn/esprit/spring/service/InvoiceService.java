@@ -48,7 +48,7 @@ public class InvoiceService implements IInvoiceService {
         Order orderInDb = populateFields(order);//populateFields(order) est une methode qui va remplir les champs de orderInDb
         Invoice invoice = CalculateInvoicePrice(orderInDb);
         Client client = clientRepository.findById(orderInDb.getClient().getId()).get();
-        this.requestSendInvoice(invoice, client);
+        //this.requestSendInvoice(invoice, client);
     }
 
     private Order populateFields(Order order) {//elle vas parcurire la liste des orderLines et va remplir les champs de orderInDb
