@@ -3,9 +3,12 @@ package tn.esprit.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import tn.esprit.spring.config.InvalidInputException;
+import tn.esprit.spring.entities.Client;
 import tn.esprit.spring.entities.Order;
 import tn.esprit.spring.entities.OrderLine;
 import tn.esprit.spring.entities.Product;
+import tn.esprit.spring.repository.IClientRepository;
 import tn.esprit.spring.repository.IOrderLineRepository;
 import tn.esprit.spring.repository.IOrderRepository;
 import tn.esprit.spring.repository.ProductRepository;
@@ -14,6 +17,7 @@ import tn.esprit.spring.serviceInterface.IInvoiceService;
 import tn.esprit.spring.serviceInterface.IOrderService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService implements IOrderService {
@@ -30,14 +34,19 @@ public class OrderService implements IOrderService {
     ProductRepository productRepository;
 
     @Autowired
+    IClientRepository clientRepository;
+
+    @Autowired
     IHttpHelper httpHelper;
 
     @Override
-    public void addOrder(Order order) throws Exception {
+    public void addOrder(Order order) throws InvalidInputException {
 
         this.validateOrderLineBody(order);
 
         this.validateOrderLinesQuantityVsProductStock(order);
+
+        this.validateClient(order);
 
         orderRepository.save(order);
 
@@ -71,26 +80,50 @@ public class OrderService implements IOrderService {
         return orderRepository.findAll();
     }
 
-    private void validateOrderLineBody(Order order) throws Exception {
-        if (order.getOrderLines().size() == 0) {
-            throw new Exception("Order can not be empty");
+    private void validateClient(Order order) throws InvalidInputException {
+        if (order.getClient() == null) {
+            throw new InvalidInputException("Client is required");
         }
+
+        if (order.getClient().getId() == 0) {
+            throw new InvalidInputException("Client id is required");
+        }
+
+        Optional<Client> client = clientRepository.findById(order.getClient().getId());
+        if (!client.isPresent()) {
+            throw new InvalidInputException("Client not found");
+        }
+    }
+
+    private void validateOrderLineBody(Order order) throws InvalidInputException {
+        if (order.getOrderLines().size() == 0) {
+            throw new InvalidInputException("Order can not be empty");
+        }
+
         for (OrderLine orderLine : order.getOrderLines()) {
             if (orderLine.getQuantity() <= 0) {
-                throw new Exception("Order line quantity must be greater than 0");
+                throw new InvalidInputException("Order line quantity must be greater than 0");
             }
             if (orderLine.getProduct() == null) {
-                throw new Exception("Order line product must be set");
+                throw new InvalidInputException("Order line product must be set");
+            }
+            if (orderLine.getProduct().getCode() <= 0) {
+                throw new InvalidInputException("Order line product id must be set");
+            }
+
+            Optional<Product> product = productRepository.findById(orderLine.getProduct().getCode());
+            if (!product.isPresent()) {
+                throw new InvalidInputException("Order line product not found");
             }
         }
     }
 
-    private boolean validateOrderLinesQuantityVsProductStock(Order order) throws Exception {
+    private boolean validateOrderLinesQuantityVsProductStock(Order order) throws InvalidInputException {
         for (OrderLine orderLine : order.getOrderLines()) {
             Long productCode = orderLine.getProduct().getCode();
             int quantity = orderLine.getQuantity();
             if (!checkAvailibility(productCode, quantity)) {
-                throw new Exception("Product " + productCode + " is not available in stock");
+                throw new InvalidInputException("Product " + productCode + " is not available in stock");
             }
         }
         return true;

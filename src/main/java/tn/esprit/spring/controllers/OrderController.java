@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import tn.esprit.spring.config.InvalidInputException;
 import tn.esprit.spring.dto.ApiResponse;
 import tn.esprit.spring.entities.Order;
 import tn.esprit.spring.serviceInterface.IOrderService;
@@ -26,7 +27,7 @@ public class OrderController {
             apiResponse.setStatus("SUCCESS");
             apiResponse.setMessage("Order created successfully");
         }
-        catch (Exception e)
+        catch (InvalidInputException e)
         {
             apiResponse.setStatus("ERROR");
             apiResponse.setMessage("Error while creating order");
