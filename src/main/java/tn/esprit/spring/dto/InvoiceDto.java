@@ -2,16 +2,21 @@ package tn.esprit.spring.dto;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.*;
-import tn.esprit.spring.entities.Client;
+import tn.esprit.spring.entities.User;
 import tn.esprit.spring.entities.Invoice;
 import tn.esprit.spring.entities.Order;
+import tn.esprit.spring.entities.OrderStatus;
 
 @Setter
 @Getter
 @ToString
+@JsonSerialize
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class InvoiceDto {
     public Date invoiceDate;
     public Order order;
@@ -32,12 +37,13 @@ public class InvoiceDto {
 
     public InvoiceDto() {}
 
-    public static InvoiceDto mapFrom(Invoice invoiceInput, Client client) {
+    public static InvoiceDto mapFrom(Invoice invoiceInput, User client) {
         InvoiceDto invoice = new InvoiceDto();
         invoice.setEmail(client.getEmail());
         invoice.setFirstName(client.getFirstName());
         invoice.setLastName(client.getLastName());
-        invoice.setAddress(client.getAdresse());
+        // invoice.setAddress(client.getAdresse());
+        invoiceInput.getOrder().setStatus(OrderStatus.APPROVED);
         invoice.setOrder(invoiceInput.getOrder());
         invoice.setCurrency("DT");
         invoice.setInvoiceDate(invoiceInput.getInvoiceDate());

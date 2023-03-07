@@ -2,10 +2,8 @@ package tn.esprit.spring.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
 @AllArgsConstructor
 @Getter

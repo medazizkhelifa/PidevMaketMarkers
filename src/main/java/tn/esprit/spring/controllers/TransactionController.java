@@ -1,7 +1,6 @@
 package tn.esprit.spring.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +8,6 @@ import tn.esprit.spring.config.InvalidInputException;
 import tn.esprit.spring.dto.ApiResponse;
 import tn.esprit.spring.dto.GiftPointDto;
 import tn.esprit.spring.dto.TransactionDTO;
-import tn.esprit.spring.entities.Transaction;
 import tn.esprit.spring.serviceInterface.ITransactionService;
 
 @Controller
@@ -40,7 +38,7 @@ public class TransactionController {
 
     @GetMapping("/discount-balance/{id}")
     @ResponseBody
-    public ApiResponse getAvailableBalance(@PathVariable("id") int id) {
+    public ApiResponse getAvailableBalance(@PathVariable("id") Long id) {
         ApiResponse apiResponse = new ApiResponse();
         try{
             apiResponse.setStatus("SUCCESS");

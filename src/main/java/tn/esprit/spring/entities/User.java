@@ -20,21 +20,29 @@ import java.util.List;
 @Entity
 @Table(name = "Users")
 @ToString
-@Inheritance(strategy= InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class User {
     @Id
     @GeneratedValue
-     int id;
+    Long id;
     @CreatedDate
-     Instant creationDate;
+    Instant creationDate;
     @LastModifiedDate
-     Instant LastUpdateDate;
-     String FirstName;
-     String LastName;
-     Integer Num;
-     String Email;
-     String Password;
+    Instant LastUpdateDate;
+    String userName;
+    String FirstName;
+    String LastName;
+    Integer Num;
+    String email;
+    String Password;
+    String token;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
 
+    private List<Role> roles = new ArrayList<>();
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
 
 }

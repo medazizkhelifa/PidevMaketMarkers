@@ -20,7 +20,7 @@ public class GiftPoint {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JsonBackReference
-    private Client Client;
+    private User Client;
 
     @OneToOne
     private Transaction Transaction;

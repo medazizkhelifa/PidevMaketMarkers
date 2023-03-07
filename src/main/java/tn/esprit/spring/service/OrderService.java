@@ -4,16 +4,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import tn.esprit.spring.config.InvalidInputException;
-import tn.esprit.spring.entities.Client;
+import tn.esprit.spring.dto.NotificationDto;
+import tn.esprit.spring.dto.OrderFilterDto;
 import tn.esprit.spring.entities.Order;
 import tn.esprit.spring.entities.OrderLine;
+import tn.esprit.spring.entities.OrderStatus;
 import tn.esprit.spring.entities.Product;
-import tn.esprit.spring.repository.IClientRepository;
+import tn.esprit.spring.entities.User;
 import tn.esprit.spring.repository.IOrderLineRepository;
 import tn.esprit.spring.repository.IOrderRepository;
 import tn.esprit.spring.repository.ProductRepository;
+import tn.esprit.spring.repository.UserRepository;
 import tn.esprit.spring.serviceInterface.IHttpHelper;
-import tn.esprit.spring.serviceInterface.IInvoiceService;
+import tn.esprit.spring.serviceInterface.INotificationService;
 import tn.esprit.spring.serviceInterface.IOrderService;
 
 import java.util.List;
@@ -28,16 +31,16 @@ public class OrderService implements IOrderService {
     IOrderLineRepository orderLineRepository;
 
     @Autowired
-    IInvoiceService invoiceService;
-
-    @Autowired
     ProductRepository productRepository;
 
     @Autowired
-    IClientRepository clientRepository;
+    UserRepository userRepository;
 
     @Autowired
     IHttpHelper httpHelper;
+
+    @Autowired
+    private INotificationService notificationService;
 
     @Override
     public void addOrder(Order order) throws InvalidInputException {
@@ -48,6 +51,7 @@ public class OrderService implements IOrderService {
 
         this.validateClient(order);
 
+        order.setStatus(OrderStatus.PENDING);
         orderRepository.save(order);
 
         order.getOrderLines().forEach(orderLine -> {
@@ -55,7 +59,8 @@ public class OrderService implements IOrderService {
             orderLineRepository.save(orderLine);
         });
 
-        this.invoiceService.generateInvoice(order);
+        NotificationDto notificationDto = new NotificationDto(2L, "", String.valueOf(order.getId()),"New order", "A new order has been submitted");
+        this.notificationService.sendNotificationToUser(notificationDto);
     }
 
     @Override
@@ -89,7 +94,7 @@ public class OrderService implements IOrderService {
             throw new InvalidInputException("Client id is required");
         }
 
-        Optional<Client> client = clientRepository.findById(order.getClient().getId());
+        Optional<User> client = userRepository.findById(order.getClient().getId());
         if (!client.isPresent()) {
             throw new InvalidInputException("Client not found");
         }
@@ -112,6 +117,7 @@ public class OrderService implements IOrderService {
             }
 
             Optional<Product> product = productRepository.findById(orderLine.getProduct().getCode());
+
             if (!product.isPresent()) {
                 throw new InvalidInputException("Order line product not found");
             }
@@ -129,7 +135,7 @@ public class OrderService implements IOrderService {
         return true;
     }
 
-   private boolean checkAvailibility(Long code, int quantity) {
+    private boolean checkAvailibility(Long code, int quantity) {
         List<OrderLine> list = orderLineRepository.findByProduct_Code(code);
         if (list.size() == 0) {
             Product product = productRepository.findById(code).get();
@@ -138,6 +144,55 @@ public class OrderService implements IOrderService {
         int quantitySold = list.stream().mapToInt(OrderLine::getQuantity).sum();
         int availableQuantity = list.get(0).getProduct().getSecurityStock() - quantitySold;
         return availableQuantity - quantity >= 0;
+    }
+
+    @Override
+    public void updateOrderStatus(int id, OrderStatus status) throws InvalidInputException {
+        if (orderRepository.existsById(id)) {
+            Order order = orderRepository.findById(id).get();
+            
+            String notificationTitle = "Order updated";
+            String notificationBody = "";
+
+            if(status == OrderStatus.PENDING){
+                throw new InvalidInputException("Order status can not be updated to pending");
+            }
+
+            if(order.getStatus() == OrderStatus.CANCELED){
+                throw new InvalidInputException("Order has been already canceled");
+            }
+
+            if(order.getStatus() == OrderStatus.APPROVED){
+                throw new InvalidInputException("Order has been already approved");
+            }
+
+            order.setStatus(status);
+            orderRepository.save(order);
+            if(status == OrderStatus.APPROVED)
+            {
+                notificationBody = "Your order has been accepted";
+            }
+            else if(status == OrderStatus.CANCELED)
+            {
+                notificationBody = "Your order has been canceled";
+            }
+            NotificationDto notificationDto = new NotificationDto(order.getClient().getId(), "", String.valueOf(order.getId()),notificationTitle, notificationBody);
+            this.notificationService.sendNotificationToUser(notificationDto);
+            
+            return;
+        }
+        throw new InvalidInputException("Order not found");
+    }
+
+    @Override
+    public List<Order> filterOrder(OrderFilterDto filter) {
+        System.out.println("orderStatus.getCreateDate() " + filter.getCreateDate());
+        try{
+            OrderStatus orderStatus = OrderStatus.valueOf(filter.getStatus().toUpperCase());
+            return orderRepository.filterOrder(filter.getId(), orderStatus, filter.getCreateDate());
+        }catch(NullPointerException ex){
+            return orderRepository.filterOrder(filter.getId(), null, filter.getCreateDate());
+        }
     }
 
 }

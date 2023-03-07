@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import tn.esprit.spring.entities.Invoice;
 
 @Getter
 @Setter
@@ -12,5 +11,5 @@ import tn.esprit.spring.entities.Invoice;
 @NoArgsConstructor
 public class TransactionDTO {
     private double discount;
-    private Invoice invoice;
+    private int orderId;
 }

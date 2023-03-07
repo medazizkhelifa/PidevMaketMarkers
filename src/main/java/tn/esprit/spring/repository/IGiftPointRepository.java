@@ -12,7 +12,7 @@ public interface IGiftPointRepository extends JpaRepository<GiftPoint, Long> {
         value="select sum(gifts.point) as total, (sum(gifts.point) - (select SUM(i.discount) from invoices i where i.order_id in (select id from orders where client_id =?1))) as available_balance, gifts.client_id as client_id from gift_points gifts  where gifts.client_id=?1",
         nativeQuery = true
     )
-    Map<String, Object> getAvailableBalance(int client_id);
+    Map<String, Object> getAvailableBalance(Long client_id);
 
     //i.order_id in (SELECT id from orders where client_id=?1)
 }

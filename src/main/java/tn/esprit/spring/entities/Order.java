@@ -1,16 +1,16 @@
 package tn.esprit.spring.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import lombok.*;
-import lombok.experimental.FieldDefaults;
-import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
-import java.io.Serializable;
+
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 
 
@@ -19,6 +19,8 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
+@JsonSerialize
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "orders")
 public class Order {
     @Id
@@ -27,7 +29,7 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
-    private Client client;
+    private User client;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -36,6 +38,11 @@ public class Order {
     @OneToOne(mappedBy = "order",cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Invoice invoice;
+
+    private OrderStatus status = OrderStatus.PENDING;
+
+    @Temporal(TemporalType.DATE)
+    private Date createdAt = new Date();
 
     // getters and setters
 }

@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GiftPointDto {
-    private int clientId;
+    private Long clientId;
     private double availableBalance;
     private double totalBalance;
 }

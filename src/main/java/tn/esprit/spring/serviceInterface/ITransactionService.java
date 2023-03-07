@@ -6,5 +6,5 @@ import tn.esprit.spring.dto.TransactionDTO;
 
 public interface ITransactionService {
     void AddTransaction(TransactionDTO transaction) throws InvalidInputException;
-    GiftPointDto getAvailableBalance(int client_id) throws InvalidInputException;
+    GiftPointDto getAvailableBalance(Long client_id) throws InvalidInputException;
 }

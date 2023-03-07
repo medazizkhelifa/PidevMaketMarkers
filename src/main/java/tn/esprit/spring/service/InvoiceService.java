@@ -8,15 +8,15 @@ import org.springframework.stereotype.Service;
 
 import tn.esprit.spring.dto.CurrencyDto;
 import tn.esprit.spring.dto.InvoiceDto;
-import tn.esprit.spring.entities.Client;
 import tn.esprit.spring.entities.Currency;
 import tn.esprit.spring.entities.Invoice;
 import tn.esprit.spring.entities.Order;
+import tn.esprit.spring.entities.User;
 import tn.esprit.spring.repository.CurrencyRepository;
-import tn.esprit.spring.repository.IClientRepository;
 import tn.esprit.spring.repository.IInvoiceRepository;
 import tn.esprit.spring.repository.IOrderRepository;
 import tn.esprit.spring.repository.ProductRepository;
+import tn.esprit.spring.repository.UserRepository;
 import tn.esprit.spring.serviceInterface.IHttpHelper;
 import tn.esprit.spring.serviceInterface.IInvoiceService;
 
@@ -32,7 +32,7 @@ public class InvoiceService implements IInvoiceService {
     IOrderRepository orderRepository;
 
     @Autowired
-    IClientRepository clientRepository;
+    UserRepository userRepository;
 
     @Autowired
     CurrencyRepository currencyRepository;
@@ -44,11 +44,12 @@ public class InvoiceService implements IInvoiceService {
     private Environment environment;
 
     @Override
-    public void generateInvoice(Order order) {
+    public Invoice generateInvoice(Order order) {
         Order orderInDb = populateFields(order);//populateFields(order) est une methode qui va remplir les champs de orderInDb
         Invoice invoice = CalculateInvoicePrice(orderInDb);
-        Client client = clientRepository.findById(orderInDb.getClient().getId()).get();
-        //this.requestSendInvoice(invoice, client);
+        User client = userRepository.findById(orderInDb.getClient().getId()).get();
+        this.requestSendInvoice(invoice, client);
+        return invoice;
     }
 
     private Order populateFields(Order order) {//elle vas parcurire la liste des orderLines et va remplir les champs de orderInDb
@@ -71,16 +72,18 @@ public class InvoiceService implements IInvoiceService {
         invoice.setSubtotal(0);
 
         order.getOrderLines().forEach(orderLine -> {//parcourir la liste des orderLines
-            float currencyRate = getCurrencyRate(orderLine.getProduct().getCurrency());//taux d'echange
-            float productPrice = currencyRate * orderLine.getProduct().getPrix();
-            float price = productPrice * orderLine.getQuantity();
+            double currencyRate = getCurrencyRate(orderLine.getProduct().getCurrency());//taux d'echange
+            double productPrice = currencyRate * orderLine.getProduct().getPrix();
+            double price = round(productPrice * orderLine.getQuantity(), 2);
             invoice.setSubtotal(invoice.getSubtotal() + price);
         });
 
-        invoice.setTaxPercent(19);
-        invoice.setTax(invoice.getSubtotal() * invoice.getTaxPercent()/100);
+        invoice.setTaxPercent(9);
+        double taxPrice = invoice.getSubtotal() * invoice.getTaxPercent()/100;
+        invoice.setTax(round(taxPrice, 2));
         invoice.setShipping(7.0);
-        invoice.setTotal(invoice.getSubtotal() + invoice.getTax() + invoice.getShipping());
+        double totalPrice = invoice.getSubtotal() + invoice.getTax() + invoice.getShipping();
+        invoice.setTotal(round(totalPrice, 2));
         invoice.setInvoiceDate(new Date());
         invoice.setCreatedAt(new Date());
         invoice.setUpdatedAt(new Date());
@@ -90,10 +93,19 @@ public class InvoiceService implements IInvoiceService {
         return invoice;
     }
 
-    private void requestSendInvoice(Invoice invoice, Client client) {
+    private void requestSendInvoice(Invoice invoice, User client) {
         String invoiceServiceUrl = environment.getProperty("invoice_generator");
+        invoice.getOrder().setInvoice(null);
         InvoiceDto toSend = InvoiceDto.mapFrom(invoice, client);
         httpHelper.post(invoiceServiceUrl+"/send-invoice", toSend, null);
+    }
+
+    private double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 }
 
