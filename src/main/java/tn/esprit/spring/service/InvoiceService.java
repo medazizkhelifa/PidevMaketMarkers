@@ -74,16 +74,16 @@ public class InvoiceService implements IInvoiceService {
         order.getOrderLines().forEach(orderLine -> {//parcourir la liste des orderLines
             double currencyRate = getCurrencyRate(orderLine.getProduct().getCurrency());//taux d'echange
             double productPrice = currencyRate * orderLine.getProduct().getPrix();
-            double price = round(productPrice * orderLine.getQuantity(), 2);
+            double price = round(productPrice * orderLine.getQuantity());
             invoice.setSubtotal(invoice.getSubtotal() + price);
         });
 
         invoice.setTaxPercent(9);
         double taxPrice = invoice.getSubtotal() * invoice.getTaxPercent()/100;
-        invoice.setTax(round(taxPrice, 2));
+        invoice.setTax(round(taxPrice));
         invoice.setShipping(7.0);
         double totalPrice = invoice.getSubtotal() + invoice.getTax() + invoice.getShipping();
-        invoice.setTotal(round(totalPrice, 2));
+        invoice.setTotal(round(totalPrice));
         invoice.setInvoiceDate(new Date());
         invoice.setCreatedAt(new Date());
         invoice.setUpdatedAt(new Date());
@@ -100,9 +100,8 @@ public class InvoiceService implements IInvoiceService {
         httpHelper.post(invoiceServiceUrl+"/send-invoice", toSend, null);
     }
 
-    private double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
-        long factor = (long) Math.pow(10, places);
+    private double round(double value) {
+        long factor = (long) Math.pow(10, 2);
         value = value * factor;
         long tmp = Math.round(value);
         return (double) tmp / factor;
