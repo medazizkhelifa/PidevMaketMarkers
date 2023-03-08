@@ -80,7 +80,7 @@ public class TransactionService  implements ITransactionService {
             invoiceRepository.save(invoiceInDb);//sauvegarder la facture dans la base de données
             this.addGiftPoint(transactionToSave.getId(), invoiceInDb);//ajouter des points de cadeau
             //notifier admin
-            NotificationDto notificationDto = new NotificationDto(2L, "", String.valueOf(orderInDb.getId()),"Order paid", "An order has been paid successfully");
+            NotificationDto notificationDto = new NotificationDto(null, "", String.valueOf(orderInDb.getId()),"Order paid", "An order has been paid successfully",true);
             this.notificationService.sendNotificationToUser(notificationDto);
             return;
         }
@@ -120,6 +120,9 @@ public class TransactionService  implements ITransactionService {
         if(!client.isPresent()){
             throw new InvalidInputException("Client not found");
         }
+        if(!isClient(client.get())){
+            throw new InvalidInputException("User is not a client");
+        }
 
 
 //utilisée pour stocker les données renvoyées par la requête dans la base de données
@@ -147,5 +150,9 @@ public class TransactionService  implements ITransactionService {
 
         return giftPointDto;
     }
+     private boolean isClient(User user) {
+        return user.getRoles().stream().anyMatch(el -> el.getName().toUpperCase().equals("CLIENT"));
+    }
+    
     
 }

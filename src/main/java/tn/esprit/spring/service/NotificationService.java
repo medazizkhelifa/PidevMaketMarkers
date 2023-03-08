@@ -74,11 +74,24 @@ public class NotificationService implements INotificationService {
 
         // build the request
         HttpEntity<Map<String, Object>> requestentity = new HttpEntity<>(notificationMap, headers);
-        httpHelper.post(url, requestentity, Object.class);
+        Object t=httpHelper.post(url, requestentity, Object.class);
     }
 
     @Override
     public void sendNotificationToUser(NotificationDto notificationDto) throws InvalidInputException {
+        if(notificationDto.isToAdmin()){
+            Optional<List<User>> adminInDb = userRepository.findAdmin();
+            if (adminInDb.isPresent()) {
+                List<User> admins = adminInDb.get();
+                for (User admin : admins) {
+                    if(admin.getToken() != null){
+                        notificationDto.setToken(admin.getToken());
+                        this.sendNotificationRequest(notificationDto);
+                    }
+                }
+            } 
+            return;
+        }
         User userInDb = userRepository.getById(notificationDto.getId());
         if (userInDb == null) {
             return;

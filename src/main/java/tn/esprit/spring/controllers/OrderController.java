@@ -23,9 +23,10 @@ public class OrderController {
         ApiResponse apiResponse = new ApiResponse();
         try
         {
-            orderService.addOrder(order);
+           Order orderSaved= orderService.addOrder(order);
             apiResponse.setStatus("SUCCESS");
             apiResponse.setMessage("Order created successfully");
+            apiResponse.setData(orderSaved);
         }
         catch (InvalidInputException e)
         {

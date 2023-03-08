@@ -43,7 +43,7 @@ public class OrderService implements IOrderService {
     private INotificationService notificationService;
 
     @Override
-    public void addOrder(Order order) throws InvalidInputException {
+    public Order addOrder(Order order) throws InvalidInputException {
 
         this.validateOrderLineBody(order);
 
@@ -59,8 +59,9 @@ public class OrderService implements IOrderService {
             orderLineRepository.save(orderLine);
         });
 
-        NotificationDto notificationDto = new NotificationDto(2L, "", String.valueOf(order.getId()),"New order", "A new order has been submitted");
+        NotificationDto notificationDto = new NotificationDto(null, "", String.valueOf(order.getId()),"New order", "A new order has been submitted",true);
         this.notificationService.sendNotificationToUser(notificationDto);
+        return order;
     }
 
     @Override
@@ -97,6 +98,10 @@ public class OrderService implements IOrderService {
         Optional<User> client = userRepository.findById(order.getClient().getId());
         if (!client.isPresent()) {
             throw new InvalidInputException("Client not found");
+        }
+        
+        if (!this.isClient(client.get())) {
+            throw new InvalidInputException("Order cannot be created by this user");
         }
     }
 
@@ -176,7 +181,7 @@ public class OrderService implements IOrderService {
             {
                 notificationBody = "Your order has been canceled";
             }
-            NotificationDto notificationDto = new NotificationDto(order.getClient().getId(), "", String.valueOf(order.getId()),notificationTitle, notificationBody);
+            NotificationDto notificationDto = new NotificationDto(order.getClient().getId(), "", String.valueOf(order.getId()),notificationTitle, notificationBody,false);
             this.notificationService.sendNotificationToUser(notificationDto);
             
             return;
@@ -194,5 +199,7 @@ public class OrderService implements IOrderService {
             return orderRepository.filterOrder(filter.getId(), null, filter.getCreateDate());
         }
     }
-
+ private boolean isClient(User user) {
+        return user.getRoles().stream().anyMatch(el -> el.getName().toUpperCase().equals("CLIENT"));
+    }
 }

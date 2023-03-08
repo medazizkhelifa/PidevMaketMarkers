@@ -7,7 +7,7 @@ import tn.esprit.spring.entities.OrderStatus;
 import java.util.List;
 
 public interface IOrderService {
-    void addOrder(Order order) throws InvalidInputException;
+    Order addOrder(Order order) throws InvalidInputException;
     boolean deleteOrder(int id);
     Order getOrder(int id);
     List<Order> getAllOrders();

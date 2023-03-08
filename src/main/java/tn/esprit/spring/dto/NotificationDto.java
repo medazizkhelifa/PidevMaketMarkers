@@ -13,4 +13,5 @@ public class NotificationDto {
     String order_id;
     String notificationTitle;
     String notificationBody;
+    boolean isToAdmin;
 }

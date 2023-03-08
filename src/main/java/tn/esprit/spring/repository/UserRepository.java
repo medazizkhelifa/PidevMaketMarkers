@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import tn.esprit.spring.entities.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -15,4 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     public User findByEmail(String email);
 
     public User findByResetPasswordToken(String token);
+    
+    @Query("SELECT u FROM User u join u.roles r WHERE r.name = 'ADMIN'")
+    public Optional<List<User>> findAdmin();
 } 
