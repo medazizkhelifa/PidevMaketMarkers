@@ -1,17 +1,16 @@
 package tn.esprit.spring.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import tn.esprit.spring.entities.Role;
 import tn.esprit.spring.entities.User;
 import tn.esprit.spring.repository.UserRepository;
 import tn.esprit.spring.serviceInterface.IUserInterface;
 
-import java.util.Collection;
+import javax.persistence.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -66,5 +65,29 @@ public class UserService implements IUserInterface {
         user.setResetPasswordToken(null);
         userRepository.save(user);
     }
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    public User getUserByEmail(String email) {
+        String hql = "FROM User u WHERE u.email = :email";
+        Query<User> query = (Query<User>) entityManager.createQuery(hql, User.class);
+        query.setParameter("email", email);
+        List<User> users = query.getResultList();
+        if (users.isEmpty()) {
+            return null;
+        } else if (users.size() == 1) {
+            return users.get(0);
+        } else {
+            throw new RuntimeException("Multiple users found with the same email address");
+        }
+    }
+
+
+
+
+
+
 }
 

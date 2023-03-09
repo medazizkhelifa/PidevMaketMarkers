@@ -14,4 +14,6 @@ public interface IUserInterface {
     void deleteUser(Long id);
 
     User updateUser(User user);
+
+    User getUserByEmail(String email);
 }
